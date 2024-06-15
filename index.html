@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天</title>
+    <style>
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            background: #f8f8f2;
+        }
+
+        input, textarea {
+            margin-bottom: 1rem;
+            border: none;
+            border-bottom-style: solid;
+            border-bottom-width: 0.2rem;
+            border-bottom-color: #b9b6b6;
+        }
+
+        .app {
+            width: 100%;
+            text-align: center;
+            margin: auto;
+            flex-grow: 1;
+        }
+
+        .tab {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin: auto;
+            font-size: 3.5rem;
+            height: 8rem;
+            align-items: center;
+            border-top: 0.4rem;
+            border-top-style: solid;
+            border-top-color: #d5d4d4;
+        }
+
+        .tab div {
+            margin: auto;
+        }
+
+        .lxr {
+            display: flex;
+            flex-direction: column;
+            overflow-y: scroll;
+        }
+
+        .msg_list {
+            display: flex;
+            flex-direction: column;
+            overflow-y: scroll;
+        }
+
+        .lxr_item {
+            margin-top: 1rem;
+            border-bottom-style: solid;
+            border-bottom-left-radius: 1rem;
+            border-bottom-right-radius: 1rem;
+            border-bottom-color: #b9b6b6;
+            display: flex;
+        }
+
+        .lxr_item_name {
+            flex-grow: 1;
+            text-align: left;
+            padding-left: 2rem;
+            margin: auto;
+            font-size: 3rem;
+        }
+
+        .lxr_item_remove {
+            color: red;
+            font-size: 2.6rem;
+            align-content: center;
+            margin-right: 2rem;
+        }
+
+        .lxr_item_msg {
+            flex-grow: 3;
+            text-align: left;
+            padding-left: 2rem;
+            margin: auto;
+            font-size: 2.4rem;
+        }
+
+        .lxr_item_pic {
+            padding: 0.8rem;
+        }
+
+        .lxr_item_pic img {
+            width: 6rem;
+            height: 6rem;
+        }
+
+        .liaotian {
+            display: flex;
+            flex-direction: column;
+            overflow-y: scroll;
+        }
+
+        .liaotian_send {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin: auto;
+            font-size: 2rem;
+            height: 6rem;
+            align-items: center;
+        }
+
+        .liaotian_top {
+            width: 100%;
+            display: flex;
+            font-size: 3rem;
+            height: 6rem;
+            border: none;
+            border-bottom-style: solid;
+            border-bottom-width: 0.2rem;
+            border-bottom-color: #b9b6b6;
+        }
+
+        .liaotian_back {
+            width: 10rem;
+            text-align: start;
+            padding-left: 1rem;
+            align-content: center;
+        }
+
+        .liaotian_top_name {
+            flex-grow: 1;
+            text-align: start;
+            align-content: center;
+            padding-left: 2rem;
+        }
+
+        .liaotian_send textarea {
+            width: 80%;
+            height: 100%;
+        }
+
+        .liaotian_send button {
+            width: 20%;
+            height: 100%;
+            background: greenyellow;
+            font-size: 2rem;
+            border: none;
+            border-radius: 1rem;
+        }
+
+        .liaotian_msg {
+            flex-grow: 1;
+            font-size: 2.3rem;
+            width: 100%;
+            overflow-y: scroll;
+        }
+
+        .liaotian_msg_time {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .liaotian_msg_recv {
+            background: greenyellow;
+            width: 26rem;
+            text-align: left;
+            margin-right: auto;
+            padding: 1rem;
+            margin-top: 2rem;
+            margin-left: 1rem;
+        }
+
+        .liaotian_msg_send {
+            background: greenyellow;
+            width: 26rem;
+            text-align: left;
+            margin-left: auto;
+            padding: 1rem;
+            margin-top: 2rem;
+            margin-right: 1rem;
+        }
+
+
+        .login {
+            width: 100%;
+            text-align: center;
+            margin: auto;
+            font-size: 1rem;
+        }
+
+        .login_item {
+            height: 4rem;
+            align-content: center;
+        }
+
+        .login_btn {
+            font-size: 1rem;
+            background: greenyellow;
+            border: none;
+            border-radius: 0.2rem;
+            height: 2.5rem;
+            width: 6rem;
+        }
+
+        .my {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .my_info {
+            margin-top: 1rem;
+            border-bottom-style: solid;
+            border-bottom-color: #b9b6b6;
+            display: flex;
+            height: 15rem;
+        }
+
+        .my_pic {
+            padding: 1rem;
+            margin-top: 2rem;
+            margin-left: 2rem;
+        }
+
+        .my_pic img {
+            border-radius: 1rem;
+            width: 9rem;
+            height: 9rem;
+            margin-right: 3rem;
+        }
+
+        .exit {
+            margin-top: 3rem;
+            display: flex;
+            flex-direction: column;
+            font-size: 2.8rem;
+            color: #3db2b2;
+            border-top-style: solid;
+            border-top-color: #e3e3e3;
+        }
+
+        .exit div {
+            border-bottom-style: solid;
+            border-bottom-color: #e3e3e3;
+            height: 6rem;
+            text-align: start;
+            margin-bottom: 1rem;
+            padding-left: 5rem;
+            padding-top: 1rem;
+        }
+
+        .add_user {
+            text-align: end;
+            font-size: 5rem;
+            height: 6rem;
+            padding-right: 2rem;
+            padding-bottom: 1rem;
+            border-bottom-style: solid;
+            border-bottom-color: #e3e3e3;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .select {
+            color: greenyellow;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="login" class="login">
+    <div class="login_item">
+        用户：<input type="text" id="user_login">
+    </div>
+    <div class="login_item">
+        密码：<input type="text" id="pass">
+    </div>
+    <div class="login_item">
+        <button id="logi" class="login_btn">登录</button>
+    </div>
+</div>
+
+<div id="liaotian" class="app liaotian">
+    <div id="to_id" class="hide">
+    </div>
+    <div class="liaotian_top">
+        <div class="liaotian_back" onclick="showUI('msg_list')">
+            <
+        </div>
+        <div class="liaotian_top_name" id="liaotian_top_name">
+        </div>
+    </div>
+    <div class="liaotian_msg" id="liaotian_msg">
+    </div>
+    <div class="liaotian_send">
+        <textarea id="msg"></textarea>
+        <button id="send" onclick="sendMsg()">发送</button>
+    </div>
+</div>
+
+<div id="lxr" class="app lxr">
+</div>
+
+<div id="msg_list" class="app msg_list">
+    <div class="add_user" onclick="addLxr()">
+        +
+    </div>
+</div>
+
+<div id="my" class="app my">
+    <div class="my_info">
+        <div class="my_pic">
+            <img src="tx.jpg">
+        </div>
+        <div id="my_name" class="lxr_item_name">
+        </div>
+    </div>
+    <div class="exit">
+        <div onclick="exit()">退出</div>
+    </div>
+</div>
+
+<div id="tab" class="tab">
+    <div id="msg_tab" onclick="showUI('msg_list')">消息</div>
+    <div id="lxr_tab" onclick="showUI('lxr')">联系人</div>
+    <div id="my_tab" onclick="showUI('my')">我的</div>
+</div>
+
+<script>
+
+    let urlContext = "192.168.0.104:3000"
+    let tokenKey = "token"
+    let usernameKey = "username"
+    let AuthorizationKey = "Authorization"
+    let socket = null
+
+    function getCookie(k) {
+        let sps = document.cookie.split(";")
+        for (let i = 0; i < sps.length; i++) {
+            let s = sps[i]
+            sp = s.split("=")
+            let key = String(sp[0]).trim()
+            let value = String(sp[1]).trim()
+            if (key == k) {
+                return value
+            }
+        }
+        return ""
+    }
+
+    function setCookie(k, v) {
+        document.cookie = k + "=" + v
+    }
+
+    function toYMD(date) {
+        var DD = String(date.getDate()).padStart(2, '0'); // 获取日
+        var MM = String(date.getMonth() + 1).padStart(2, '0'); //获取月份，1 月为 0
+        var yyyy = date.getFullYear(); // 获取年
+        hh = String(date.getHours()).padStart(2, '0');       //获取当前小时数(0-23)
+        mm = String(date.getMinutes()).padStart(2, '0');     //获取当前分钟数(0-59)
+        ss = String(date.getSeconds()).padStart(2, '0');     //获取当前秒数(0-59)
+        return yyyy + '-' + MM + '-' + DD + ' ' + hh + ':' + mm + ':' + ss;
+    }
+
+    function saveMsg(msg) {
+        let ln = localStorage.length
+        localStorage.setItem(`message_${ln}`, JSON.stringify(msg))
+    }
+
+    function getMsg(name) {
+        let ar = []
+        let arsort = []
+        let ln = localStorage.length
+        let mp = new Map()
+        for (let i = 0; i < ln; i++) {
+            let k = localStorage.key(i)
+            let no = parseInt(k.split("_")[1])
+            let it = localStorage.getItem(k)
+            let obj = JSON.parse(it)
+            if (name == obj.fromId || name == obj.toId) {
+                mp.set(no, obj)
+                arsort.push(no)
+            }
+        }
+        arsort.sort(function (a, b) {
+            return a - b
+        })
+        for (let i = 0; i < arsort.length; i++) {
+            ar.push(mp.get(arsort[i]))
+        }
+        return ar
+    }
+
+    function showUI(name) {
+        let msg_list = document.getElementById("msg_list")
+        let lxr = document.getElementById("lxr")
+        let login = document.getElementById("login")
+        let liaotian = document.getElementById("liaotian")
+        let my = document.getElementById("my")
+        let tab = document.getElementById("tab")
+        let msg_tab = document.getElementById("msg_tab")
+        let lxr_tab = document.getElementById("lxr_tab")
+        let my_tab = document.getElementById("my_tab")
+        let hideClass = "hide"
+        let selectClass = "select"
+        login.classList.add(hideClass)
+        msg_list.classList.add(hideClass)
+        lxr.classList.add(hideClass)
+        liaotian.classList.add(hideClass)
+        my.classList.add(hideClass)
+        tab.classList.remove(hideClass)
+        msg_tab.classList.remove(selectClass)
+        lxr_tab.classList.remove(selectClass)
+        my_tab.classList.remove(selectClass)
+        let sps = name.split("?")
+        let pam = new Map()
+        if (sps.length != 1) {
+            name = sps[0]
+            let sp = sps[1]
+            let nsp = sp.split("&")
+            for (let i = 0; i < nsp.length; i++) {
+                let s = nsp[i].split("=")
+                pam.set(s[0], s[1])
+            }
+        }
+        let refmsg = function () {
+            let liaotian_msg = document.getElementById("liaotian_msg")
+            liaotian_msg.innerHTML = ""
+            let msg_txt = document.getElementById("msg")
+            msg_txt.value = ""
+            let mgs = getMsg(pam.get("name"))
+            for (let i = 0; i < mgs.length; i++) {
+                refreshLiaotian(mgs[i])
+            }
+        }
+
+        switch (name) {
+            case "login":
+                login.classList.remove(hideClass)
+                tab.classList.add(hideClass)
+                break
+            case "msg_list":
+                msg_list.classList.remove(hideClass)
+                msg_tab.classList.add(selectClass)
+                break
+            case "lxr":
+                lxr.classList.remove(hideClass)
+                lxr_tab.classList.add(selectClass)
+                lxrList()
+                break
+            case "liaotian":
+                let to_id = document.getElementById("to_id")
+                to_id.innerText = pam.get("name")
+                let liaotian_top_name = document.getElementById("liaotian_top_name")
+                liaotian_top_name.innerText = pam.get("name")
+                liaotian.classList.remove(hideClass)
+                tab.classList.add(hideClass)
+                refmsg()
+                break
+            case "my":
+                let username = getCookie(usernameKey)
+                let my_name = document.getElementById("my_name")
+                my_name.innerText = username
+                my.classList.remove(hideClass)
+                my_tab.classList.add(selectClass)
+                break
+        }
+    }
+
+    function openLxr(name) {
+        showUI("liaotian?name=" + name)
+    }
+
+    function sendMsg() {
+        if (!socket) {
+            return
+        }
+        let to_id = document.getElementById("to_id")
+        let toId = to_id.innerText.trim()
+        if (toId == "") {
+            alert("toId是空")
+            return
+        }
+        let fromId = getCookie(usernameKey)
+        if (fromId == "") {
+            alert("fromId是空")
+            return
+        }
+        let msg = document.getElementById("msg")
+        let content = msg.value
+        if (content == "") {
+            return
+        }
+        let sm = {
+            fromId: fromId,
+            toId: toId,
+            content: content,
+            contentType: 1,
+            time: parseInt(new Date().getTime() / 1000)
+        }
+        try {
+            socket.send(JSON.stringify(sm))
+            saveMsg(sm)
+            refreshLiaotian(sm)
+        } catch (e) {
+            alert("发送失败")
+        }
+    }
+
+    function refreshMsgList(msg) {
+        let msg_list = document.getElementById("msg_list")
+        let apdv = document.getElementById(msg.fromId)
+        if (!apdv) {
+            apdv = document.createElement("div")
+            apdv.id = msg.fromId
+            apdv.className = "lxr_item"
+            msg_list.appendChild(apdv)
+            apdv.onclick = function () {
+                showUI('liaotian?name=' + msg.fromId)
+            }
+        }
+        apdv.innerHTML = `<div class="lxr_item_pic">
+            <img src="tx.jpg">
+        </div>
+        <div class="lxr_item_name">
+            ${msg.fromId}
+        </div>
+        <div class="lxr_item_msg">
+            ${msg.content}
+        </div>`
+    }
+
+    function refreshLiaotian(msg) {
+        let liaotian_msg = document.getElementById("liaotian_msg")
+        if (msg.fromId == getCookie(usernameKey)) {
+            let sedv = document.createElement("div")
+            sedv.innerHTML = `${msg.content}`
+            sedv.className = "liaotian_msg_send"
+            liaotian_msg.appendChild(sedv)
+            return
+        }
+        let ti = toYMD(new Date(msg.time * 1000))
+        let tidv = document.createElement("div")
+        tidv.innerHTML = `${ti}`
+        tidv.className = "liaotian_msg_time"
+        liaotian_msg.appendChild(tidv)
+        let redv = document.createElement("div")
+        redv.innerHTML = `${msg.content}`
+        redv.className = "liaotian_msg_recv"
+        liaotian_msg.appendChild(redv)
+    }
+
+    function initLiaotian() {
+        showUI('msg_list')
+        let url = "ws://" + urlContext + "/liaotian"
+        let openSoc = function () {
+            console.log("open")
+        }
+        let closeSoc = function (connectSoc) {
+            return function () {
+                console.log("close")
+                setTimeout(function () {
+                    console.log("connect retry")
+                    connectSoc()
+                }, 2000)
+            }
+        }
+        let onMessage = function (event) {
+            if (!event.data) {
+                return
+            }
+            let msg = JSON.parse(event.data)
+            saveMsg(msg)
+            refreshMsgList(msg)
+            refreshLiaotian(msg)
+        }
+        let connectSoc = function () {
+            socket = new WebSocket(url, ["Sec-Websocket-Protocol",
+                encodeURIComponent(getCookie(tokenKey))]);
+            socket.onopen = openSoc
+            socket.onmessage = onMessage
+            socket.onclose = closeSoc(connectSoc)
+        }
+        connectSoc()
+    }
+
+    function initLogin() {
+        showUI('login')
+        let lgBtn = document.getElementById("logi")
+        let user = document.getElementById("user_login")
+        let pa = document.getElementById("pass")
+        lgBtn.onclick = function () {
+            let url = "http://" + urlContext + "/login"
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", url)
+            let formData = new FormData();
+            formData.append("name", user.value);
+            formData.append("pass", pa.value);
+            xhr.onload = function () {
+                let resp = JSON.parse(xhr.responseText)
+                if (xhr.status != 200 || resp.code != 0) {
+                    alert(resp.msg)
+                    return
+                }
+                setCookie(usernameKey, user.value)
+                setCookie(tokenKey, "Bearer " + resp.data.token)
+                location.reload();
+            }
+            xhr.onerror = function (e) {
+                alert(e)
+            }
+            xhr.send(formData)
+        }
+    }
+
+    function exit() {
+        document.cookie = `${tokenKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+        document.cookie = `${usernameKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+        localStorage.clear()
+        location.reload()
+    }
+
+    function addLxr() {
+        let userId = prompt("请输入好友id")
+        if (userId == null || userId == "") {
+            return
+        }
+        let url = "http://" + urlContext + "/lxr"
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", url)
+        xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
+        let formData = new FormData();
+        formData.append("id", userId);
+        xhr.onload = function () {
+            let resp = JSON.parse(xhr.responseText)
+            if (xhr.status != 200 || resp.code != 0) {
+                alert(resp.msg)
+            } else {
+                alert("添加成功")
+                lxrList()
+            }
+        }
+        xhr.send(formData)
+    }
+
+    function lxrList() {
+        let ls = []
+        let url = "http://" + urlContext + "/lxr/list"
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", url, false)
+        xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
+        xhr.onload = function () {
+            if (xhr.status == 403) {
+                exit()
+            }
+            let resp = JSON.parse(xhr.responseText)
+            if (xhr.status != 200 || resp.code != 0) {
+                alert(resp.msg)
+                return
+            }
+            ls = resp.data
+        }
+        xhr.send()
+        let lxr = document.getElementById("lxr")
+        lxr.innerHTML = ""
+        for (let i = 0; i < ls.length; i++) {
+            let name = ls[i]
+            let apdv = document.createElement("div")
+            apdv.className = "lxr_item"
+            apdv.onclick = function () {
+                return function () {
+                    openLxr(name)
+                }
+            }()
+            apdv.innerHTML = `<div class="lxr_item_pic">
+                <img src="tx.jpg">
+            </div>
+            <div class="lxr_item_name">
+                ${name}
+            </div>`
+            let deldv = document.createElement("div")
+            deldv.className = "lxr_item_remove"
+            deldv.innerHTML = "删除"
+            deldv.onclick = function (e) {
+                apdv.remove()
+                e.stopPropagation()
+                let url = "http://" + urlContext + "/lxr?id=" + name
+                let xhr = new XMLHttpRequest();
+                xhr.open("DELETE", url)
+                xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
+                xhr.onload = function () {
+                    if (xhr.status == 403) {
+                        exit()
+                    }
+                    let resp = JSON.parse(xhr.responseText)
+                    if (xhr.status != 200 || resp.code != 0) {
+                        alert(resp.msg)
+                    } else {
+                        lxrList()
+                    }
+                }
+                xhr.send()
+            }
+            apdv.appendChild(deldv)
+            lxr.appendChild(apdv)
+        }
+    }
+
+    function start() {
+        if (getCookie(tokenKey) == "") {
+            initLogin()
+        } else {
+            initLiaotian()
+        }
+    }
+
+    start()
+
+</script>
+
+</body>
+</html>
