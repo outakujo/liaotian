@@ -14,6 +14,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"regexp"
 	"sort"
 	"time"
 )
@@ -47,7 +48,7 @@ func main() {
 	app.Get("tx.jpg", func(c *fiber.Ctx) error {
 		return c.SendFile("tx.jpg")
 	})
-	app.Post("login", Login(loginSvc))
+	app.Post("login", Login(loginSvc(rcli)))
 
 	app.Get("liaotian", CheckWebSocket(), Auth(), websocket.New(func(c *websocket.Conn) {
 		var (
@@ -122,20 +123,46 @@ func main() {
 	log.Fatal(app.Listen(":3000"))
 }
 
-func loginSvc(c *fiber.Ctx) (jwt.MapClaims, error) {
-	claims := jwt.MapClaims{}
-	name := c.FormValue(UserIdKey)
-	pass := c.FormValue("pass")
-	if pass != "123" {
-		err := SysError{
-			Code: http.StatusUnauthorized,
-			Msg:  "密码不对",
+func loginSvc(rcli *redis.Client) LoginLogic {
+	return func(c *fiber.Ctx) (jwt.MapClaims, error) {
+		claims := jwt.MapClaims{}
+		name := c.FormValue(UserIdKey)
+		pass := c.FormValue("pass")
+		if name == "" {
+			err := SysError{
+				Code: http.StatusUnauthorized,
+				Msg:  "用户不能为空",
+			}
+			return claims, err
 		}
-		return claims, err
+		if pass == "" {
+			err := SysError{
+				Code: http.StatusUnauthorized,
+				Msg:  "密码不能为空",
+			}
+			return claims, err
+		}
+		if ma, _ := regexp.MatchString("^([0-9]|[a-zA-Z]|[_])+$", name); !ma {
+			err := SysError{
+				Code: http.StatusUnauthorized,
+				Msg:  "用户名只能为字母或数字或下划线",
+			}
+			return claims, err
+		}
+		rs, _ := rcli.GetSet(context.Background(), name+"_pass", pass).Result()
+		if rs != "" {
+			if pass != rs {
+				err := SysError{
+					Code: http.StatusUnauthorized,
+					Msg:  fmt.Sprintf("%v已经存在", name),
+				}
+				return claims, err
+			}
+		}
+		claims[UserIdKey] = name
+		claims[UserExpireKey] = time.Now().Add(time.Hour * 1).Unix()
+		return claims, nil
 	}
-	claims[UserIdKey] = name
-	claims[UserExpireKey] = time.Now().Add(time.Hour * 1).Unix()
-	return claims, nil
 }
 
 func getMacAddr() (string, error) {
