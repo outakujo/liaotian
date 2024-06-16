@@ -395,25 +395,19 @@
 
     function getMsg(name) {
         let ar = []
-        let arsort = []
         let ln = localStorage.length
-        let mp = new Map()
         for (let i = 0; i < ln; i++) {
             let k = localStorage.key(i)
             let no = parseInt(k.split("_")[1])
             let it = localStorage.getItem(k)
             let obj = JSON.parse(it)
             if (name == obj.fromId || name == obj.toId) {
-                mp.set(no, obj)
-                arsort.push(no)
+                ar.push(obj)
             }
         }
-        arsort.sort(function (a, b) {
-            return a - b
+        ar.sort(function (a, b) {
+            return a.time - b.time
         })
-        for (let i = 0; i < arsort.length; i++) {
-            ar.push(mp.get(arsort[i]))
-        }
         return ar
     }
 
