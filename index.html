@@ -3,10 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>聊天</title>
+    <script>
+        const appHeight = function () {
+            const doc = document.documentElement
+            doc.style.setProperty("--app-height", `${window.innerHeight}px`)
+        }
+        window.addEventListener("resize", appHeight)
+        appHeight()
+    </script>
     <style>
+
+        :root {
+            --app-height: 100%;
+        }
 
         body {
             height: 100vh;
+            height: var(--app-height);
             width: 100vw;
             display: flex;
             flex-direction: column;
@@ -191,21 +204,26 @@
             width: 100%;
             text-align: center;
             margin: auto;
-            font-size: 1rem;
         }
 
         .login_item {
-            height: 4rem;
+            font-size: 1.5rem;
             align-content: center;
         }
 
+        .login input {
+            height: 4rem;
+            width: 20rem;
+        }
+
         .login_btn {
-            font-size: 1rem;
+            font-size: 1.5rem;
             background: greenyellow;
             border: none;
             border-radius: 0.2rem;
-            height: 2.5rem;
-            width: 6rem;
+            height: 3.2rem;
+            width: 8rem;
+            margin-top: 0.5rem;
         }
 
         .my {
@@ -598,6 +616,14 @@
         let user = document.getElementById("user_login")
         let pa = document.getElementById("pass")
         lgBtn.onclick = function () {
+            if (user.value == "") {
+                alert("用户不能为空")
+                return
+            }
+            if (pa.value == "") {
+                alert("密码不能为空")
+                return
+            }
             let url = "http://" + urlContext + "/login"
             let xhr = new XMLHttpRequest();
             xhr.open("POST", url)
