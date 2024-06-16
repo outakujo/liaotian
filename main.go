@@ -30,7 +30,7 @@ func main() {
 		}
 		serverId = uuid.NewString([]byte(addr))
 	}
-	log.Printf("serverId:%v", serverId)
+	log.Printf("serverId:%v\n", serverId)
 	rcli := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 	})
@@ -149,8 +149,14 @@ func loginSvc(rcli *redis.Client) LoginLogic {
 			}
 			return claims, err
 		}
-		rs, _ := rcli.GetSet(context.Background(), name+"_pass", pass).Result()
-		if rs != "" {
+		key := name + "_pass"
+		rs, _ := rcli.Get(context.Background(), key).Result()
+		if rs == "" {
+			err := rcli.Set(context.Background(), key, pass, -1).Err()
+			if err != nil {
+				return claims, err
+			}
+		} else {
 			if pass != rs {
 				err := SysError{
 					Code: http.StatusUnauthorized,
