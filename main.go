@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -67,9 +68,9 @@ func main() {
 		defer sm.DelUser(userId)
 		for {
 			if mt, msg, err = c.ReadMessage(); err != nil {
-				//if strings.Contains(err.Error(), "close 1001") {
-				//	break
-				//}
+				if strings.Contains(err.Error(), "close 1001") {
+					break
+				}
 				log.Printf("userId:%v read:%v\n", userId, err)
 				break
 			}
