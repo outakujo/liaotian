@@ -204,6 +204,7 @@ func (s *SessionManager) GetUnSendMsg(userId string) ([]UserMessage, error) {
 				log.Printf("%v GetUnSendMsg json:%v\n", s.serverId, err)
 			}
 			ch <- um
+			wg.Done()
 		}(k)
 	}
 	wg.Wait()
