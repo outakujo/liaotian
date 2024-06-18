@@ -188,10 +188,11 @@ func (s *SessionManager) GetUnSendMsg(userId string) ([]UserMessage, error) {
 	if err != nil {
 		return ums, err
 	}
-	var wg sync.WaitGroup
+	if len(result) == 0 {
+		return ums, nil
+	}
 	ch := make(chan UserMessage)
 	for _, k := range result {
-		wg.Add(1)
 		go func(k string) {
 			val, err := s.redisCli.GetDel(context.Background(), k).Result()
 			if err != nil {
@@ -204,14 +205,13 @@ func (s *SessionManager) GetUnSendMsg(userId string) ([]UserMessage, error) {
 				log.Printf("%v GetUnSendMsg json:%v\n", s.serverId, err)
 			}
 			ch <- um
-			wg.Done()
 		}(k)
 	}
-	wg.Wait()
 	for i := 0; i < len(result); i++ {
 		m := <-ch
 		ums = append(ums, m)
 	}
+	close(ch)
 	return ums, nil
 }
 
