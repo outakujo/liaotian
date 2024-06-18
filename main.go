@@ -65,6 +65,18 @@ func main() {
 			log.Printf("%v adduser:%v\n", userId, err)
 			return
 		}
+		sms, err := sm.GetUnSendMsg(userId)
+		if err != nil {
+			log.Printf("%v GetUnSendMsg:%v\n", userId, err)
+			return
+		}
+		for _, m := range sms {
+			err = sm.Send(m)
+			if err != nil {
+				log.Printf("%v send UnSendMsg:%v\n", userId, err)
+				continue
+			}
+		}
 		defer sm.DelUser(userId)
 		for {
 			if mt, msg, err = c.ReadMessage(); err != nil {

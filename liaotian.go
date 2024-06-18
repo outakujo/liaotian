@@ -150,16 +150,15 @@ func (s *SessionManager) SubUserMessage() {
 			}
 			if ri == ln {
 				go func() {
-					time.Sleep(3 * time.Second)
 					err := s.redisCli.Del(context.Background(), usk).Err()
 					if err != nil {
 						log.Printf("%v SubMessage msg:%s delete:%v \n",
 							s.serverId, rmsg.Payload, err)
 						return
 					}
-					err = s.Send(um)
+					err = s.SaveUnSendMsg(usk, um.ToId, rmsg.Payload)
 					if err != nil {
-						log.Printf("%v SubMessage msg:%s retry send:%v \n",
+						log.Printf("%v SubMessage msg:%s save unsend:%v \n",
 							s.serverId, rmsg.Payload, err)
 						return
 					}
@@ -176,6 +175,43 @@ func (s *SessionManager) SubUserMessage() {
 	time.Sleep(3 * time.Second)
 	log.Printf("%v SubMessage retry conn\n", s.serverId)
 	s.SubUserMessage()
+}
+
+func (s *SessionManager) SaveUnSendMsg(msgId, toId, msg string) error {
+	err := s.redisCli.SetNX(context.Background(), toId+"_"+msgId, msg, -1).Err()
+	return err
+}
+
+func (s *SessionManager) GetUnSendMsg(userId string) ([]UserMessage, error) {
+	ums := make([]UserMessage, 0)
+	result, err := s.redisCli.Keys(context.Background(), userId+"_unsend_*").Result()
+	if err != nil {
+		return ums, err
+	}
+	var wg sync.WaitGroup
+	ch := make(chan UserMessage)
+	for _, k := range result {
+		wg.Add(1)
+		go func(k string) {
+			val, err := s.redisCli.GetDel(context.Background(), k).Result()
+			if err != nil {
+				log.Printf("%v GetUnSendMsg get key:%v\n", s.serverId, err)
+				return
+			}
+			var um UserMessage
+			err = json.Unmarshal([]byte(val), &um)
+			if err != nil {
+				log.Printf("%v GetUnSendMsg json:%v\n", s.serverId, err)
+			}
+			ch <- um
+		}(k)
+	}
+	wg.Wait()
+	for i := 0; i < len(result); i++ {
+		m := <-ch
+		ums = append(ums, m)
+	}
+	return ums, nil
 }
 
 func (s *SessionManager) SubServerMessage() {
