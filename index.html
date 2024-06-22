@@ -642,8 +642,8 @@
     }
 
     function exit() {
-        document.cookie = `${tokenKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
-        document.cookie = `${usernameKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+        document.cookie = `${tokenKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`
+        document.cookie = `${usernameKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`
         localStorage.clear()
         location.reload()
     }
