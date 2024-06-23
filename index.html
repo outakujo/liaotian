@@ -398,7 +398,9 @@
         let ln = localStorage.length
         for (let i = 0; i < ln; i++) {
             let k = localStorage.key(i)
-            let no = parseInt(k.split("_")[1])
+            if (!k.includes("message_")) {
+                continue
+            }
             let it = localStorage.getItem(k)
             let obj = JSON.parse(it)
             if (name == obj.fromId || name == obj.toId) {
