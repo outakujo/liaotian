@@ -523,6 +523,7 @@
         try {
             socket.send(JSON.stringify(sm))
             saveMsg(sm)
+            msg.value = ""
             refreshLiaotian(sm)
         } catch (e) {
             alert("发送失败")
