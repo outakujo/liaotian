@@ -16,13 +16,16 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
 
 func main() {
 	var serverId string
+	var serPort int
 	flag.StringVar(&serverId, "serverId", "", "serverId")
+	flag.IntVar(&serPort, "serverPort", 3000, "serverId")
 	flag.Parse()
 	if serverId == "" {
 		addr, err := getMacAddr()
@@ -49,7 +52,7 @@ func main() {
 	app.Get("tx.jpg", func(c *fiber.Ctx) error {
 		return c.SendFile("tx.jpg")
 	})
-	app.Post("login", Login(loginSvc(rcli)))
+	app.Post("login", Login(loginSvc(rcli, serverId)))
 
 	app.Get("liaotian", CheckWebSocket(), Auth(), websocket.New(func(c *websocket.Conn) {
 		var (
@@ -133,10 +136,10 @@ func main() {
 		return RespData(c, nil)
 	})
 
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(":" + strconv.Itoa(serPort)))
 }
 
-func loginSvc(rcli *redis.Client) LoginLogic {
+func loginSvc(rcli *redis.Client, serverId string) LoginLogic {
 	return func(c *fiber.Ctx) (jwt.MapClaims, error) {
 		claims := jwt.MapClaims{}
 		name := c.FormValue(UserIdKey)
@@ -179,6 +182,7 @@ func loginSvc(rcli *redis.Client) LoginLogic {
 			}
 		}
 		claims[UserIdKey] = name
+		claims[ServerIdKey] = serverId
 		claims[UserExpireKey] = time.Now().Add(time.Hour * 1).Unix()
 		return claims, nil
 	}

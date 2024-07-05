@@ -27,6 +27,7 @@ const (
 	UserConnKey          = "conn"
 	UserExpireKey        = "exp"
 	UserTokenKey         = "token"
+	ServerIdKey          = "server_id"
 	UserMessageChannel   = "user_message"
 	ServerMessageChannel = "server_message"
 	ServerListKey        = "server_list"
