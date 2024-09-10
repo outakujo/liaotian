@@ -10,10 +10,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/golang-jwt/jwt/v5"
+	guuid "github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -23,8 +25,11 @@ import (
 
 func main() {
 	var serverId string
+	var audioDir string
 	var serPort int
+	const audioStatic = "audio"
 	flag.StringVar(&serverId, "serverId", "", "serverId")
+	flag.StringVar(&audioDir, "audioDir", "audio", "audio save dir")
 	flag.IntVar(&serPort, "serverPort", 3000, "serverId")
 	flag.Parse()
 	if serverId == "" {
@@ -41,6 +46,8 @@ func main() {
 	sm := NewSessionManager(serverId, rcli)
 	go sm.SubUserMessage()
 	go sm.SubServerMessage()
+
+	os.MkdirAll(audioDir, os.ModePerm)
 
 	app := fiber.New()
 	app.Use(Recover())
@@ -96,7 +103,23 @@ func main() {
 		}
 	}, websocket.Config{Subprotocols: []string{SecWebSocketProtocol}}))
 
+	app.Static(audioStatic, audioDir)
+
 	app.Use(Auth())
+	app.Post("putaudio", func(c *fiber.Ctx) error {
+		file, err := c.FormFile("file")
+		if err != nil {
+			return err
+		}
+		uids := strings.ReplaceAll(guuid.NewString(), "-", "")
+		fn := audioDir + "/" + uids + ".ogg"
+		err = c.SaveFile(file, fn)
+		if err != nil {
+			return err
+		}
+		return RespData(c, audioStatic+"/"+uids+".ogg")
+	})
+
 	lxr := app.Group("lxr")
 	lxr.Get("list", func(c *fiber.Ctx) error {
 		us := GetUserMap(c)

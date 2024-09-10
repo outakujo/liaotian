@@ -290,6 +290,50 @@
             color: greenyellow;
         }
 
+        .ly_icon {
+            width: 6.5rem;
+            height: 7rem;
+            margin-right: 1rem;
+            margin-left: 1rem;
+            padding-bottom: 1rem;
+        }
+
+        .lyzz {
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            position: fixed;
+            z-index: 99999;
+            background: rgba(0, 0, 0, 0.28);
+        }
+
+        .lyzz_content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .lyztip {
+            font-size: 3rem;
+            color: #07a046;
+            text-align: center;
+        }
+
+        .lystop {
+            padding-top: 5rem;
+            text-align: center;
+        }
+
+        .lystop_icon {
+            width: 7rem;
+            height: 7rem;
+            margin-right: 1rem;
+            margin-left: 1rem;
+        }
+
     </style>
 </head>
 <body>
@@ -319,6 +363,11 @@
     <div class="liaotian_msg" id="liaotian_msg">
     </div>
     <div class="liaotian_send">
+        <svg t="1725962600034" class="ly_icon" onclick="openLyzz()" viewBox="0 0 1024 1024"
+             xmlns="http://www.w3.org/2000/svg" p-id="2881">
+            <path d="M488.727273 930.909091v-93.905455a325.934545 325.934545 0 0 1-280.832-207.825454A325.073455 325.073455 0 0 1 186.181818 512h46.545455c0 34.792727 6.353455 68.677818 18.594909 100.421818A279.365818 279.365818 0 0 0 791.272727 512h46.545455c0 40.494545-7.400727 80.011636-21.643637 117.038545A325.934545 325.934545 0 0 1 535.272727 837.003636V930.909091h186.181818v46.545454H302.545455v-46.545454h186.181818z m23.272727-837.818182a186.181818 186.181818 0 0 0-186.181818 186.181818v232.727273a186.181818 186.181818 0 1 0 372.363636 0V279.272727a186.181818 186.181818 0 0 0-186.181818-186.181818z m0-46.545454c128.535273 0 232.727273 104.192 232.727273 232.727272v232.727273c0 128.535273-104.192 232.727273-232.727273 232.727273s-232.727273-104.192-232.727273-232.727273V279.272727c0-128.535273 104.192-232.727273 232.727273-232.727272z"
+                  fill="#6D7793" id="ly_icon"></path>
+        </svg>
         <textarea id="msg"></textarea>
         <button id="send" onclick="sendMsg()">发送</button>
     </div>
@@ -352,9 +401,27 @@
     <div id="my_tab" onclick="showUI('my')">我的</div>
 </div>
 
+<div id="lyzz" class="lyzz hide">
+    <div class="lyzz_content">
+        <div class="lyztip">
+            录音中...
+        </div>
+        <div class="lystop">
+            <svg t="1725964630732" class="lystop_icon" onclick="closeLyzz()" viewBox="0 0 1024 1024"
+                 xmlns="http://www.w3.org/2000/svg">
+                <path d="M678.528 642.304c0 17.6-14.4 32-32 32h-268.992a32 32 0 0 1-32-32V381.696a32 32 0 0 1 32-32h268.992c17.6 0 32 14.4 32 32v260.608z"
+                      fill="red"></path>
+                <path d="M1015.552 512.128a502.656 502.656 0 0 0-503.68-503.68 502.208 502.208 0 0 0-356.096 147.264 502.016 502.016 0 0 0-147.328 356.416 500.288 500.288 0 0 0 146.816 356.736 499.584 499.584 0 0 0 356.544 146.688c277.312-2.816 503.744-226.24 503.744-503.424z m-947.968 0a444.288 444.288 0 0 1 444.288-444.544c246.976 0 447.296 200.128 447.296 444.544 0 244.032-200.32 444.416-447.296 444.416a442.304 442.304 0 0 1-444.288-444.416z"
+                      fill="#101317"></path>
+            </svg>
+        </div>
+    </div>
+</div>
+
+
 <script>
 
-    let urlContext = "192.168.0.104:3000"
+    let urlContext = "localhost:3000"
     let tokenKey = "token"
     let usernameKey = "username"
     let AuthorizationKey = "Authorization"
@@ -622,11 +689,11 @@
                 return
             }
             let url = "http://" + urlContext + "/login"
-            let xhr = new XMLHttpRequest();
+            let xhr = new XMLHttpRequest()
             xhr.open("POST", url)
-            let formData = new FormData();
-            formData.append("name", user.value);
-            formData.append("pass", pa.value);
+            let formData = new FormData()
+            formData.append("name", user.value)
+            formData.append("pass", pa.value)
             xhr.onload = function () {
                 let resp = JSON.parse(xhr.responseText)
                 if (xhr.status != 200 || resp.code != 0) {
@@ -657,11 +724,11 @@
             return
         }
         let url = "http://" + urlContext + "/lxr"
-        let xhr = new XMLHttpRequest();
+        let xhr = new XMLHttpRequest()
         xhr.open("POST", url)
         xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
-        let formData = new FormData();
-        formData.append("id", userId);
+        let formData = new FormData()
+        formData.append("id", userId)
         xhr.onload = function () {
             let resp = JSON.parse(xhr.responseText)
             if (xhr.status != 200 || resp.code != 0) {
@@ -677,7 +744,7 @@
     function lxrList() {
         let ls = []
         let url = "http://" + urlContext + "/lxr/list"
-        let xhr = new XMLHttpRequest();
+        let xhr = new XMLHttpRequest()
         xhr.open("GET", url, false)
         xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
         xhr.onload = function () {
@@ -716,7 +783,7 @@
                 apdv.remove()
                 e.stopPropagation()
                 let url = "http://" + urlContext + "/lxr?id=" + name
-                let xhr = new XMLHttpRequest();
+                let xhr = new XMLHttpRequest()
                 xhr.open("DELETE", url)
                 xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
                 xhr.onload = function () {
@@ -743,6 +810,65 @@
         } else {
             initLiaotian()
         }
+    }
+
+    let record = null;
+
+    function openLyzz() {
+        let lyzz = document.getElementById("lyzz")
+        lyzz.classList.remove("hide")
+        if (!navigator.mediaDevices) {
+            closeLyzz()
+            alert("不支持录音")
+            return
+        }
+        const constraints = {audio: true}
+        let chunks = []
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(function (stream) {
+                stream.stop = function () {
+                    this.getAudioTracks().forEach(function (track) {
+                        track.stop();
+                    })
+                }
+                record = new MediaRecorder(stream)
+                record.ondataavailable = function (e) {
+                    chunks.push(e.data)
+                }
+                record.onstop = function (e) {
+                    stream.stop()
+                    let blob = new Blob(chunks, {type: "audio/ogg; codecs=opus"})
+                    chunks = null
+                    let url = "http://" + urlContext + "/putaudio"
+                    let putfile = new File([blob], "audio.ogg")
+                    let formdata = new FormData()
+                    formdata.append("file", putfile)
+                    let xhr = new XMLHttpRequest()
+                    xhr.open("POST", url)
+                    xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
+                    xhr.onload = function () {
+                        if (xhr.status == 403) {
+                            exit()
+                        }
+                        let resp = JSON.parse(xhr.responseText)
+                        if (xhr.status != 200 || resp.code != 0) {
+                            alert(resp.msg)
+                            return
+                        }
+                        console.log("http://" + urlContext + "/" + resp.data)
+                    }
+                    xhr.send(formdata)
+                }
+                record.start()
+            }).catch(function (e) {
+            alert(e)
+        })
+    }
+
+    function closeLyzz() {
+        let lyzz = document.getElementById("lyzz")
+        lyzz.classList.add("hide")
+        record.stop()
     }
 
     start()
