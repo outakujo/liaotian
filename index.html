@@ -341,6 +341,42 @@
             margin-left: 1rem;
         }
 
+        .liaotian_msg_icon {
+            width: 3rem;
+            height: 3rem;
+            margin-left: 0.7rem;
+            margin-right: 0.7rem;
+        }
+
+        .liaotian_msg_send_audio {
+            background: greenyellow;
+            width: 26rem;
+            flex-direction: row;
+            display: flex;
+            justify-content: right;
+            padding: 1rem;
+            margin-top: 2rem;
+            margin-left: auto;
+            margin-right: 1rem;
+        }
+
+        .liaotian_msg_recv_audio {
+            background: greenyellow;
+            width: 26rem;
+            flex-direction: row;
+            display: flex;
+            justify-content: left;
+            padding: 1rem;
+            margin-top: 2rem;
+            margin-right: auto;
+            margin-left: 1rem;
+        }
+
+        .liaotian_msg_audio_txt {
+            flex-grow: 1;
+            text-align: center;
+        }
+
     </style>
 </head>
 <body>
@@ -370,7 +406,7 @@
     <div class="liaotian_msg" id="liaotian_msg">
     </div>
     <div class="liaotian_send">
-        <svg t="1725962600034" class="ly_icon" onclick="openLyzz()" viewBox="0 0 1024 1024"
+        <svg class="ly_icon" onclick="openLyzz()" viewBox="0 0 1024 1024"
              xmlns="http://www.w3.org/2000/svg" p-id="2881">
             <path d="M488.727273 930.909091v-93.905455a325.934545 325.934545 0 0 1-280.832-207.825454A325.073455 325.073455 0 0 1 186.181818 512h46.545455c0 34.792727 6.353455 68.677818 18.594909 100.421818A279.365818 279.365818 0 0 0 791.272727 512h46.545455c0 40.494545-7.400727 80.011636-21.643637 117.038545A325.934545 325.934545 0 0 1 535.272727 837.003636V930.909091h186.181818v46.545454H302.545455v-46.545454h186.181818z m23.272727-837.818182a186.181818 186.181818 0 0 0-186.181818 186.181818v232.727273a186.181818 186.181818 0 1 0 372.363636 0V279.272727a186.181818 186.181818 0 0 0-186.181818-186.181818z m0-46.545454c128.535273 0 232.727273 104.192 232.727273 232.727272v232.727273c0 128.535273-104.192 232.727273-232.727273 232.727273s-232.727273-104.192-232.727273-232.727273V279.272727c0-128.535273 104.192-232.727273 232.727273-232.727272z"
                   fill="#6D7793" id="ly_icon"></path>
@@ -442,6 +478,7 @@
     let socket = null
     let record = null
     let incr = 0
+    let player = new Audio()
 
     const MsgTxtType = 1
     const MsgAudioType = 2
@@ -472,6 +509,20 @@
         mm = String(date.getMinutes()).padStart(2, '0');     //获取当前分钟数(0-59)
         ss = String(date.getSeconds()).padStart(2, '0');     //获取当前秒数(0-59)
         return yyyy + '-' + MM + '-' + DD + ' ' + hh + ':' + mm + ':' + ss;
+    }
+
+    function numberToMs(t) {
+        let sec = t % 60
+        let mm = parseInt(t / 60)
+        let secstr = ""
+        let mmstr = ""
+        if (sec != 0) {
+            secstr = sec + `"`
+        }
+        if (mm != 0) {
+            mmstr = mm + `'`
+        }
+        return mmstr + secstr
     }
 
     function saveMsg(msg) {
@@ -550,6 +601,7 @@
             case "msg_list":
                 msg_list.classList.remove(hideClass)
                 msg_tab.classList.add(selectClass)
+                playReset()
                 break
             case "lxr":
                 lxr.classList.remove(hideClass)
@@ -650,15 +702,30 @@
 
     function refreshLiaotian(msg) {
         let liaotian_msg = document.getElementById("liaotian_msg")
-        if (msg.contentType == MsgAudioType) {
-            let aur = msg.content
-            let dua = aur.split("_")[1].split(".")[0]
-            msg.content = dua
-        }
         if (msg.fromId == getCookie(usernameKey)) {
             let sedv = document.createElement("div")
-            sedv.innerHTML = `${msg.content}`
-            sedv.className = "liaotian_msg_send"
+            if (msg.contentType == MsgAudioType) {
+                let aur = msg.content
+                msg.content = numberToMs(aur.split("_")[1].split(".")[0])
+                sedv.innerHTML = ` <div class="liaotian_msg_audio_txt">
+                ${msg.content}
+            </div>
+            <svg class="liaotian_msg_icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"
+                 p-id="9165">
+                <path d="M726.00008 278.63235C744.200233 263.712153 772.345514 264.967496 788.85453 281.457133 805.345962 297.946772 803.964091 323.430758 785.74532 338.387723 744.054392 372.623393 720.127128 421.632191 720.127128 472.819718 720.127128 523.933709 744.109213 572.979274 785.963566 607.326297 795.672865 615.284856 800.581818 626.216319 800.581818 637.203459 800.581818 646.842812 796.781673 656.5557 789.03554 664.274746 772.526524 680.747575 744.381243 682.002918 726.18109 667.044903 665.781117 617.427868 631.126767 546.647538 631.126767 472.819718 631.127799 398.900505 665.709746 328.121225 726.00008 278.63235L726.00008 278.63235 726.00008 278.63235ZM557.309402 145.824424C574.636576 130.036516 602.800475 129.944072 620.218671 145.658445 637.654452 161.318191 637.709271 186.892521 620.400714 202.66257 541.254459 274.772829 497.637599 370.703088 497.637599 472.818669 497.637599 574.750413 541.310313 670.662814 620.61896 742.902284 629.237036 750.750541 633.564692 761.035949 633.564692 771.302447 633.564692 781.643532 629.200834 792.022434 620.455534 799.869641 603.019754 815.584013 574.873438 815.510479 557.52868 799.721521 461.509323 712.303432 408.637237 596.18999 408.637237 472.818669 408.636202 349.245652 461.454503 233.113301 557.309402 145.824424L557.309402 145.824424 557.309402 145.824424ZM390.072998 12.3904C407.073323-3.656979 435.236187-4.192733 452.981233 11.2275 470.744897 26.646683 471.309644 52.166387 454.290701 68.213766 338.763791 177.310944 275.163586 320.993608 275.163586 472.801859 275.163586 624.314921 338.872396 767.942959 454.508945 877.262842 462.762935 885.055423 466.890966 895.100267 466.890966 905.146161 466.890966 915.726759 462.308864 926.326265 453.181894 934.248057 435.454432 949.648328 407.272949 949.094717 390.255042 933.029478 258.653535 808.641282 186.181841 645.217695 186.181841 472.819719 186.145638 300.088735 258.581132 136.591611 390.072998 12.3904L390.072998 12.3904 390.072998 12.3904Z"
+                      fill="#283F52" p-id="9166"></path>
+            </svg>`
+                sedv.className = "liaotian_msg_send_audio"
+                sedv.setAttribute("audio", aur)
+                sedv.onclick = function () {
+                    player.load()
+                    player.src = aur
+                    player.play()
+                }
+            } else {
+                sedv.innerHTML = `${msg.content}`
+                sedv.className = "liaotian_msg_send"
+            }
             liaotian_msg.appendChild(sedv)
             return
         }
@@ -668,8 +735,28 @@
         tidv.className = "liaotian_msg_time"
         liaotian_msg.appendChild(tidv)
         let redv = document.createElement("div")
-        redv.innerHTML = `${msg.content}`
-        redv.className = "liaotian_msg_recv"
+        if (msg.contentType == MsgAudioType) {
+            let aur = msg.content
+            msg.content = numberToMs(aur.split("_")[1].split(".")[0])
+            redv.innerHTML = `<svg class="liaotian_msg_icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"
+                 p-id="9459">
+                <path d="M261.283306 278.655388C243.083715 263.735652 214.939304 264.990956 198.430798 281.480084 181.939876 297.969213 183.321704 323.452412 201.539912 338.408914 243.229552 372.643525 267.156076 421.650809 267.156076 472.836754 267.156076 523.949165 243.174733 572.993214 201.321674 607.339176 191.612674 615.297489 186.703873 626.228613 186.703873 637.215414 186.703873 646.854469 190.503901 656.567057 198.249794 664.285864 214.758299 680.758184 242.902711 682.013488 261.102301 667.055936 321.500408 617.440435 356.153686 546.662292 356.153686 472.836754 356.152655 398.919826 321.571777 328.142733 261.283306 278.655388L261.283306 278.655388 261.283306 278.655388ZM429.96877 145.851566C412.642132 130.064147 384.479103 129.971706 367.061445 145.685593 349.626204 161.344855 349.571386 186.918394 366.879407 202.687956 446.023217 274.795986 489.638728 370.72328 489.638728 472.835705 489.638728 574.764298 445.967364 670.673735 366.661169 742.910972 358.043359 750.758987 353.715837 761.044077 353.715837 771.310258 353.715837 781.651023 358.07956 792.029604 366.82459 799.876569 384.259831 815.590455 412.405277 815.516923 429.749498 799.728453 525.765888 712.313066 578.63634 596.203213 578.63634 472.835705 578.637375 349.266508 525.820707 233.137746 429.96877 145.851566L429.96877 145.851566 429.96877 145.851566ZM597.200005 12.421667C580.200206-3.625216 552.038212-4.160954 534.293714 11.258803 516.530599 26.677509 515.965869 52.196424 532.984287 68.243307 648.507626 177.337114 712.105866 321.015336 712.105866 472.818896 712.105866 624.327274 648.399024 767.950874 532.766049 877.267378 524.512314 885.059717 520.384411 895.104251 520.384411 905.149835 520.384411 915.730105 524.966372 926.329284 534.093059 934.250831 551.819973 949.650626 580.000586 949.097032 597.017967 933.03229 728.615406 808.647938 801.08486 645.229403 801.08486 472.836754 801.121061 300.11111 728.687807 136.619039 597.200005 12.421667L597.200005 12.421667 597.200005 12.421667Z"
+                      fill="#283F52" p-id="9460"></path>
+            </svg>
+            <div class="liaotian_msg_audio_txt">
+                ${msg.content}
+            </div>`
+            redv.className = "liaotian_msg_recv_audio"
+            redv.setAttribute("audio", aur)
+            redv.onclick = function () {
+                player.load()
+                player.src = aur
+                player.play()
+            }
+        } else {
+            redv.innerHTML = `${msg.content}`
+            redv.className = "liaotian_msg_recv"
+        }
         liaotian_msg.appendChild(redv)
     }
 
@@ -846,6 +933,7 @@
     }
 
     function openLyzz() {
+        playReset()
         let lyzz = document.getElementById("lyzz")
         lyzz.classList.remove("hide")
         if (!navigator.mediaDevices) {
@@ -922,6 +1010,11 @@
     function cancelLy() {
         incr = 0
         closeLyzz()
+    }
+
+    function playReset() {
+        player.load()
+        player.src = ""
     }
 
     start()

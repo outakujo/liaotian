@@ -4,6 +4,7 @@
 
 #### feature
 
+* 前端原生js无依赖
 * 依赖redis
 * 分布式websocket部署
 * 消息重发
