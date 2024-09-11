@@ -31,6 +31,28 @@ const (
 	UserMessageChannel   = "user_message"
 	ServerMessageChannel = "server_message"
 	ServerListKey        = "server_list"
+	SubUserMsgLuaScript  = `
+local usk = KEYS[1]
+local slk = KEYS[2]
+local expireTime = 60
+local sln = redis.call("SCARD", slk)
+local cln = 0
+
+if redis.call("EXISTS", usk) == 0 then
+    redis.call("SET", usk, 1)
+    redis.call("EXPIRE", usk, expireTime)
+    cln = 1
+else
+	cln = redis.call("INCR", key)
+end
+
+if cln == sln then
+	return true
+else
+	return false
+end
+
+`
 )
 
 const (
@@ -46,15 +68,21 @@ const (
 )
 
 type SessionManager struct {
-	serverId string
-	m        map[string]jwt.MapClaims
-	redisCli *redis.Client
-	mut      sync.Mutex
+	serverId           string
+	m                  map[string]jwt.MapClaims
+	redisCli           *redis.Client
+	mut                sync.Mutex
+	subUserMsgScriptId string
 }
 
 func NewSessionManager(serverId string, redisCli *redis.Client) *SessionManager {
 	s := &SessionManager{redisCli: redisCli, serverId: serverId, m: make(map[string]jwt.MapClaims)}
 	err := s.redisCli.SAdd(context.Background(), ServerListKey, serverId).Err()
+	if err != nil {
+		panic(err)
+	}
+	s.subUserMsgScriptId, err = s.redisCli.ScriptLoad(context.Background(),
+		SubUserMsgLuaScript).Result()
 	if err != nil {
 		panic(err)
 	}
@@ -138,33 +166,23 @@ func (s *SessionManager) SubUserMessage() {
 		}
 		_, ok := s.m[um.ToId]
 		if !ok {
-			usk := "unsend_" + uuid.NewString([]byte(rmsg.Payload))
-			ri, err := s.redisCli.Incr(context.Background(), usk).Result()
-			if err != nil {
-				log.Printf("%v SubMessage incr:%v\n", s.serverId, err)
-				continue
-			}
-			ln, err := s.redisCli.SCard(context.Background(), ServerListKey).Result()
-			if err != nil {
-				log.Printf("%v SubMessage LLen:%v\n", s.serverId, err)
-				continue
-			}
-			if ri == ln {
-				go func() {
-					err := s.redisCli.Del(context.Background(), usk).Err()
-					if err != nil {
-						log.Printf("%v SubMessage msg:%s delete:%v \n",
-							s.serverId, rmsg.Payload, err)
-						return
-					}
-					err = s.SaveUnSendMsg(usk, um.ToId, rmsg.Payload)
-					if err != nil {
-						log.Printf("%v SubMessage msg:%s save unsend:%v \n",
-							s.serverId, rmsg.Payload, err)
-						return
-					}
-				}()
-			}
+			go func() {
+				usk := "unsend_" + uuid.NewString([]byte(rmsg.Payload))
+				fl, err := s.redisCli.EvalSha(context.Background(), s.subUserMsgScriptId,
+					[]string{usk, ServerListKey}).Bool()
+				if err != nil {
+					log.Printf("%v SubMessage evalSha:%v\n", s.serverId, err)
+					return
+				}
+				if !fl {
+					return
+				}
+				err = s.SaveUnSendMsg(usk, um.ToId, rmsg.Payload)
+				if err != nil {
+					log.Printf("%v SubMessage msg:%s save unsend:%v \n",
+						s.serverId, rmsg.Payload, err)
+				}
+			}()
 			continue
 		}
 		err = s.SendLocalMsg(um)

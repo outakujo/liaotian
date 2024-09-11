@@ -318,7 +318,7 @@
 
         .lyztip {
             font-size: 3rem;
-            color: #07a046;
+            color: #ffffff;
             text-align: center;
         }
 
@@ -331,6 +331,13 @@
             width: 7rem;
             height: 7rem;
             margin-right: 1rem;
+            margin-left: 1rem;
+        }
+
+        .lycancel_icon {
+            width: 6.2rem;
+            height: 6.2rem;
+            margin-right: 4rem;
             margin-left: 1rem;
         }
 
@@ -407,17 +414,24 @@
             录音中...
         </div>
         <div class="lystop">
-            <svg t="1725964630732" class="lystop_icon" onclick="closeLyzz()" viewBox="0 0 1024 1024"
-                 xmlns="http://www.w3.org/2000/svg">
-                <path d="M678.528 642.304c0 17.6-14.4 32-32 32h-268.992a32 32 0 0 1-32-32V381.696a32 32 0 0 1 32-32h268.992c17.6 0 32 14.4 32 32v260.608z"
-                      fill="red"></path>
-                <path d="M1015.552 512.128a502.656 502.656 0 0 0-503.68-503.68 502.208 502.208 0 0 0-356.096 147.264 502.016 502.016 0 0 0-147.328 356.416 500.288 500.288 0 0 0 146.816 356.736 499.584 499.584 0 0 0 356.544 146.688c277.312-2.816 503.744-226.24 503.744-503.424z m-947.968 0a444.288 444.288 0 0 1 444.288-444.544c246.976 0 447.296 200.128 447.296 444.544 0 244.032-200.32 444.416-447.296 444.416a442.304 442.304 0 0 1-444.288-444.416z"
-                      fill="#101317"></path>
-            </svg>
+            <div>
+                <svg viewBox="0 0 1024 1024" class="lycancel_icon"
+                     xmlns="http://www.w3.org/2000/svg" p-id="6233"
+                     onclick="cancelLy()">
+                    <path d="M97.1 91.2c11.3-11.3 29.8-11.3 41.1 0l782.2 782.2c11.3 11.3 11.3 29.8 0 41.1s-29.8 11.3-41.1 0L97.1 132.2c-11.3-11.3-11.3-29.7 0-41z"
+                          fill="red" p-id="6234"></path>
+                    <path d="M920.4 91.1c11.3 11.3 11.3 29.8 0 41.1L138.2 914.5c-11.3 11.3-29.8 11.3-41.1 0s-11.3-29.8 0-41.1L879.3 91.1c11.4-11.3 29.8-11.3 41.1 0z"
+                          fill="red" p-id="6235"></path>
+                </svg>
+                <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="lystop_icon"
+                     onclick="closeLyzz()">
+                    <path d="M915.515273 142.819385 98.213046 458.199122c-46.058539 17.772838-44.90475 43.601756 2.348455 57.622994l197.477685 58.594874 80.292024 238.91085c10.51184 31.277988 37.972822 37.873693 61.462483 14.603752l103.584447-102.611545 204.475018 149.840224c26.565749 19.467242 53.878547 9.222132 61.049613-23.090076l149.210699-672.34491C965.264096 147.505054 946.218922 130.971848 915.515273 142.819385zM791.141174 294.834331l-348.61988 310.610267c-6.268679 5.58499-11.941557 16.652774-12.812263 24.846818l-15.390659 144.697741c-1.728128 16.24808-7.330491 16.918483-12.497501 1.344894l-67.457277-203.338603c-2.638691-7.954906 0.975968-17.705389 8.022355-21.931178l442.114555-265.181253C812.67481 268.984974 815.674251 272.975713 791.141174 294.834331z"
+                          fill="#56d530"></path>
+                </svg>
+            </div>
         </div>
     </div>
 </div>
-
 
 <script>
 
@@ -426,6 +440,11 @@
     let usernameKey = "username"
     let AuthorizationKey = "Authorization"
     let socket = null
+    let record = null
+    let incr = 0
+
+    const MsgTxtType = 1
+    const MsgAudioType = 2
 
     function getCookie(k) {
         let sps = document.cookie.split(";")
@@ -561,6 +580,10 @@
     }
 
     function sendMsg() {
+        sendTypeMsg(MsgTxtType)
+    }
+
+    function sendTypeMsg(contentType, content) {
         if (!socket) {
             return
         }
@@ -575,22 +598,24 @@
             alert("fromId是空")
             return
         }
-        let msg = document.getElementById("msg")
-        let content = msg.value
-        if (content == "") {
-            return
+        if (contentType == MsgTxtType) {
+            let msg = document.getElementById("msg")
+            content = msg.value
+            if (content == "") {
+                return
+            }
+            msg.value = ""
         }
         let sm = {
             fromId: fromId,
             toId: toId,
             content: content,
-            contentType: 1,
+            contentType: contentType,
             time: parseInt(new Date().getTime() / 1000)
         }
         try {
             socket.send(JSON.stringify(sm))
             saveMsg(sm)
-            msg.value = ""
             refreshLiaotian(sm)
         } catch (e) {
             alert("发送失败")
@@ -609,6 +634,9 @@
                 showUI('liaotian?name=' + msg.fromId)
             }
         }
+        if (msg.contentType == MsgAudioType) {
+            msg.content = "[语音]"
+        }
         apdv.innerHTML = `<div class="lxr_item_pic">
             <img src="tx.jpg">
         </div>
@@ -622,6 +650,11 @@
 
     function refreshLiaotian(msg) {
         let liaotian_msg = document.getElementById("liaotian_msg")
+        if (msg.contentType == MsgAudioType) {
+            let aur = msg.content
+            let dua = aur.split("_")[1].split(".")[0]
+            msg.content = dua
+        }
         if (msg.fromId == getCookie(usernameKey)) {
             let sedv = document.createElement("div")
             sedv.innerHTML = `${msg.content}`
@@ -812,8 +845,6 @@
         }
     }
 
-    let record = null;
-
     function openLyzz() {
         let lyzz = document.getElementById("lyzz")
         lyzz.classList.remove("hide")
@@ -835,14 +866,29 @@
                 record.ondataavailable = function (e) {
                     chunks.push(e.data)
                 }
+                incr = 0
+                let timer = setInterval(function () {
+                    incr++
+                    if (incr > 120) {
+                        incr = 0
+                        closeLyzz()
+                        alert("最长时间2分钟")
+                    }
+                }, 1000)
                 record.onstop = function (e) {
                     stream.stop()
+                    clearInterval(timer)
+                    if (incr == 0) {
+                        return
+                    }
                     let blob = new Blob(chunks, {type: "audio/ogg; codecs=opus"})
                     chunks = null
                     let url = "http://" + urlContext + "/putaudio"
                     let putfile = new File([blob], "audio.ogg")
                     let formdata = new FormData()
+                    formdata.append("time", incr)
                     formdata.append("file", putfile)
+                    incr = 0
                     let xhr = new XMLHttpRequest()
                     xhr.open("POST", url)
                     xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
@@ -855,7 +901,7 @@
                             alert(resp.msg)
                             return
                         }
-                        console.log("http://" + urlContext + "/" + resp.data)
+                        sendTypeMsg(MsgAudioType, "http://" + urlContext + "/" + resp.data)
                     }
                     xhr.send(formdata)
                 }
@@ -868,7 +914,14 @@
     function closeLyzz() {
         let lyzz = document.getElementById("lyzz")
         lyzz.classList.add("hide")
-        record.stop()
+        if (record) {
+            record.stop()
+        }
+    }
+
+    function cancelLy() {
+        incr = 0
+        closeLyzz()
     }
 
     start()

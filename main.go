@@ -23,13 +23,16 @@ import (
 	"time"
 )
 
+const audioStatic = "audio"
+
 func main() {
 	var serverId string
 	var audioDir string
+	var redisAddr string
 	var serPort int
-	const audioStatic = "audio"
 	flag.StringVar(&serverId, "serverId", "", "serverId")
 	flag.StringVar(&audioDir, "audioDir", "audio", "audio save dir")
+	flag.StringVar(&redisAddr, "redisAddr", "localhost:6379", "redis server addr")
 	flag.IntVar(&serPort, "serverPort", 3000, "serverId")
 	flag.Parse()
 	if serverId == "" {
@@ -41,27 +44,42 @@ func main() {
 	}
 	log.Printf("serverId:%v\n", serverId)
 	rcli := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: redisAddr,
 	})
-	sm := NewSessionManager(serverId, rcli)
-	go sm.SubUserMessage()
-	go sm.SubServerMessage()
-
 	os.MkdirAll(audioDir, os.ModePerm)
 
 	app := fiber.New()
 	app.Use(Recover())
 	app.Use(ErrorHandler())
 	app.Use(cors.New())
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendFile("index.html")
-	})
-	app.Get("tx.jpg", func(c *fiber.Ctx) error {
-		return c.SendFile("tx.jpg")
-	})
+	app.Get("/", sendFile("index.html"))
+	app.Get("tx.jpg", sendFile("tx.jpg"))
+	app.Static(audioStatic, audioDir)
 	app.Post("login", Login(loginSvc(rcli, serverId)))
+	app.Get("liaotian", CheckWebSocket(), Auth(),
+		liaotian(rcli, serverId))
 
-	app.Get("liaotian", CheckWebSocket(), Auth(), websocket.New(func(c *websocket.Conn) {
+	app.Use(Auth())
+	app.Post("putaudio", putAudio(audioDir, audioStatic))
+	lxr := app.Group("lxr")
+	lxr.Get("list", lxrList(rcli))
+	lxr.Delete("", deleteLxr(rcli))
+	lxr.Post("", addLxr(rcli))
+
+	log.Fatal(app.Listen(":" + strconv.Itoa(serPort)))
+}
+
+func sendFile(fn string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		return c.SendFile(fn)
+	}
+}
+
+func liaotian(rcli *redis.Client, serverId string) fiber.Handler {
+	sm := NewSessionManager(serverId, rcli)
+	go sm.SubUserMessage()
+	go sm.SubServerMessage()
+	return websocket.New(func(c *websocket.Conn) {
 		var (
 			mt  int
 			msg []byte
@@ -101,50 +119,28 @@ func main() {
 				log.Printf("userId:%v handle:%v\n", userId, err)
 			}
 		}
-	}, websocket.Config{Subprotocols: []string{SecWebSocketProtocol}}))
+	}, websocket.Config{Subprotocols: []string{SecWebSocketProtocol}})
+}
 
-	app.Static(audioStatic, audioDir)
-
-	app.Use(Auth())
-	app.Post("putaudio", func(c *fiber.Ctx) error {
+func putAudio(dir, static string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		file, err := c.FormFile("file")
 		if err != nil {
 			return err
 		}
+		seconds := c.FormValue("time")
 		uids := strings.ReplaceAll(guuid.NewString(), "-", "")
-		fn := audioDir + "/" + uids + ".ogg"
-		err = c.SaveFile(file, fn)
+		fn := uids + fmt.Sprintf("_%s", seconds) + ".ogg"
+		err = c.SaveFile(file, dir+"/"+fn)
 		if err != nil {
 			return err
 		}
-		return RespData(c, audioStatic+"/"+uids+".ogg")
-	})
+		return RespData(c, static+"/"+fn)
+	}
+}
 
-	lxr := app.Group("lxr")
-	lxr.Get("list", func(c *fiber.Ctx) error {
-		us := GetUserMap(c)
-		name := us[UserIdKey].(string)
-		ls, err := rcli.LRange(context.Background(), name+"_lxr", 0, -1).Result()
-		if err != nil {
-			return err
-		}
-		sort.Strings(ls)
-		return RespData(c, ls)
-	})
-	lxr.Delete("", func(c *fiber.Ctx) error {
-		us := GetUserMap(c)
-		name := us[UserIdKey].(string)
-		id := c.Query("id")
-		if id == "" {
-			return errors.New("id不能为空")
-		}
-		err := rcli.LRem(context.Background(), name+"_lxr", 0, id).Err()
-		if err != nil {
-			return err
-		}
-		return RespData(c, nil)
-	})
-	lxr.Post("", func(c *fiber.Ctx) error {
+func addLxr(rcli *redis.Client) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		us := GetUserMap(c)
 		name := us[UserIdKey].(string)
 		id := c.FormValue("id")
@@ -157,9 +153,36 @@ func main() {
 			return err
 		}
 		return RespData(c, nil)
-	})
+	}
+}
 
-	log.Fatal(app.Listen(":" + strconv.Itoa(serPort)))
+func deleteLxr(rcli *redis.Client) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		us := GetUserMap(c)
+		name := us[UserIdKey].(string)
+		id := c.Query("id")
+		if id == "" {
+			return errors.New("id不能为空")
+		}
+		err := rcli.LRem(context.Background(), name+"_lxr", 0, id).Err()
+		if err != nil {
+			return err
+		}
+		return RespData(c, nil)
+	}
+}
+
+func lxrList(rcli *redis.Client) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		us := GetUserMap(c)
+		name := us[UserIdKey].(string)
+		ls, err := rcli.LRange(context.Background(), name+"_lxr", 0, -1).Result()
+		if err != nil {
+			return err
+		}
+		sort.Strings(ls)
+		return RespData(c, ls)
+	}
 }
 
 func loginSvc(rcli *redis.Client, serverId string) LoginLogic {
