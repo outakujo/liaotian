@@ -54,6 +54,7 @@ func main() {
 	app.Use(cors.New())
 	app.Get("/", sendFile("index.html"))
 	app.Get("tx.jpg", sendFile("tx.jpg"))
+	app.Get("tip.wav", sendFile("tip.wav"))
 	app.Static(audioStatic, audioDir)
 	app.Post("login", Login(loginSvc(rcli, serverId)))
 	app.Get("liaotian", CheckWebSocket(), Auth(),

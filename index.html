@@ -469,6 +469,10 @@
     </div>
 </div>
 
+<audio id="tip_audio" class="hide">
+    <source src="tip.wav" type="audio/wav">
+</audio>
+
 <script>
 
     let urlContext = "localhost:3000"
@@ -763,6 +767,7 @@
     function initLiaotian() {
         showUI('msg_list')
         let url = "ws://" + urlContext + "/liaotian"
+        let tipAudio = document.getElementById("tip_audio")
         let openSoc = function () {
             console.log("open")
         }
@@ -783,6 +788,8 @@
             saveMsg(msg)
             refreshMsgList(msg)
             refreshLiaotian(msg)
+            tipAudio.load()
+            tipAudio.play()
         }
         let connectSoc = function () {
             socket = new WebSocket(url, ["Sec-Websocket-Protocol",
