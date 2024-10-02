@@ -43,13 +43,13 @@ if redis.call("EXISTS", usk) == 0 then
     redis.call("EXPIRE", usk, expireTime)
     cln = 1
 else
-	cln = redis.call("INCR", key)
+	cln = redis.call("INCR", usk)
 end
 
 if cln == sln then
-	return true
+	return 1
 else
-	return false
+	return 0
 end
 
 `
