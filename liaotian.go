@@ -89,6 +89,12 @@ func NewSessionManager(serverId string, redisCli *redis.Client) *SessionManager 
 	return s
 }
 
+func (s *SessionManager) reloadScript() (err error) {
+	s.subUserMsgScriptId, err = s.redisCli.ScriptLoad(context.Background(),
+		SubUserMsgLuaScript).Result()
+	return
+}
+
 func (s *SessionManager) Send(msg UserMessage) error {
 	if msg.ToId == "" {
 		return errors.New("toId 不能为空")
@@ -193,6 +199,10 @@ func (s *SessionManager) SubUserMessage() {
 	_ = sub.Close()
 	time.Sleep(3 * time.Second)
 	log.Printf("%v SubMessage retry conn\n", s.serverId)
+	err := s.reloadScript()
+	if err != nil {
+		log.Printf("%v SubMessage reloadScript %v\n", s.serverId, err)
+	}
 	s.SubUserMessage()
 }
 
