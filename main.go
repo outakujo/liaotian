@@ -30,10 +30,10 @@ func main() {
 	var audioDir string
 	var redisAddr string
 	var serPort int
-	flag.StringVar(&serverId, "serverId", "", "serverId")
+	flag.StringVar(&serverId, "serverId", "", "server id")
 	flag.StringVar(&audioDir, "audioDir", "audio", "audio save dir")
 	flag.StringVar(&redisAddr, "redisAddr", "localhost:6379", "redis server addr")
-	flag.IntVar(&serPort, "serverPort", 3000, "serverId")
+	flag.IntVar(&serPort, "serverPort", 3000, "server port")
 	flag.Parse()
 	if serverId == "" {
 		addr, err := getMacAddr()
