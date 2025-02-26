@@ -477,6 +477,7 @@
 <script>
 
     let urlContext = "localhost:3000"
+    let enableWss = false
     let tokenKey = "token"
     let usernameKey = "username"
     let AuthorizationKey = "Authorization"
@@ -767,7 +768,11 @@
 
     function initLiaotian() {
         showUI('msg_list')
-        let url = "ws://" + urlContext + "/liaotian"
+        let wsDo = "ws://"
+        if (enableWss) {
+            wsDo = "wss://"
+        }
+        let url = wsDo + urlContext + "/liaotian"
         let tipAudio = document.getElementById("tip_audio")
         let openSoc = function () {
             console.log("open")
@@ -816,7 +821,7 @@
                 alert("密码不能为空")
                 return
             }
-            let url = "http://" + urlContext + "/login"
+            let url = urlContext + "/login"
             let xhr = new XMLHttpRequest()
             xhr.open("POST", url)
             let formData = new FormData()
@@ -851,7 +856,7 @@
         if (userId == null || userId == "") {
             return
         }
-        let url = "http://" + urlContext + "/lxr"
+        let url = urlContext + "/lxr"
         let xhr = new XMLHttpRequest()
         xhr.open("POST", url)
         xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
@@ -871,7 +876,7 @@
 
     function lxrList() {
         let ls = []
-        let url = "http://" + urlContext + "/lxr/list"
+        let url = urlContext + "/lxr/list"
         let xhr = new XMLHttpRequest()
         xhr.open("GET", url, false)
         xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
@@ -910,7 +915,7 @@
             deldv.onclick = function (e) {
                 apdv.remove()
                 e.stopPropagation()
-                let url = "http://" + urlContext + "/lxr?id=" + name
+                let url = urlContext + "/lxr?id=" + name
                 let xhr = new XMLHttpRequest()
                 xhr.open("DELETE", url)
                 xhr.setRequestHeader(AuthorizationKey, getCookie(tokenKey))
@@ -979,7 +984,7 @@
                     }
                     let blob = new Blob(chunks, {type: "audio/ogg; codecs=opus"})
                     chunks = null
-                    let url = "http://" + urlContext + "/putaudio"
+                    let url = urlContext + "/putaudio"
                     let putfile = new File([blob], "audio.ogg")
                     let formdata = new FormData()
                     formdata.append("time", incr)
@@ -997,7 +1002,7 @@
                             alert(resp.msg)
                             return
                         }
-                        sendTypeMsg(MsgAudioType, "http://" + urlContext + "/" + resp.data)
+                        sendTypeMsg(MsgAudioType, urlContext + "/" + resp.data)
                     }
                     xhr.send(formdata)
                 }
