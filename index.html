@@ -476,8 +476,8 @@
 
 <script>
 
-    let urlContext = "localhost:3000"
-    let enableWss = false
+    let urlContext = ""
+    let wsAddr = "ws://localhost:3000/liaotian"
     let tokenKey = "token"
     let usernameKey = "username"
     let AuthorizationKey = "Authorization"
@@ -768,11 +768,6 @@
 
     function initLiaotian() {
         showUI('msg_list')
-        let wsDo = "ws://"
-        if (enableWss) {
-            wsDo = "wss://"
-        }
-        let url = wsDo + urlContext + "/liaotian"
         let tipAudio = document.getElementById("tip_audio")
         let openSoc = function () {
             console.log("open")
@@ -798,7 +793,7 @@
             tipAudio.play()
         }
         let connectSoc = function () {
-            socket = new WebSocket(url, ["Sec-Websocket-Protocol",
+            socket = new WebSocket(wsAddr, ["Sec-Websocket-Protocol",
                 encodeURIComponent(getCookie(tokenKey))]);
             socket.onopen = openSoc
             socket.onmessage = onMessage
